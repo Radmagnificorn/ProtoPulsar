@@ -24,7 +24,7 @@ namespace ProtoPulsar
             }
         }
 
-        private List<ICombatant> calculateRound(int requestedTurns)
+        public List<ICombatant> CalculateRound(int requestedTurns)
         {
             // TODO: base iterations on slowest combatant to save cycles
             var turnList = new List<Turn>();
@@ -37,9 +37,16 @@ namespace ProtoPulsar
                     turnList.Add(new Turn(combatant, turnSpeed));
                 }
             });
-            turnList.Sort((turn1, turn2) => turn2.Speed.CompareTo(turn1.Speed));
+            turnList.OrderBy(turn => turn.Speed);
 
-            return turnList.Take(requestedTurns).Select(turn => turn.Target).ToList();
+            return turnList.OrderBy(turn => turn.Speed)
+                .Take(requestedTurns)
+                .Select(turn => turn.Target).ToList();
+        }
+
+        public void AddCombatant(ICombatant combatant)
+        {
+            _combatants.Add(combatant);
         }
         
     }

@@ -14,11 +14,17 @@ namespace ProtoPulsar
 
             var turnManager = new TurnManager();
             // Make test combatants
-            TurnManager
-            
+            turnManager.AddCombatant(new TestCombatant("Steve", 1));
+            turnManager.AddCombatant(new TestCombatant("Burt", 2));
+            turnManager.AddCombatant(new TestCombatant("Elvis", 3));
+
+            var round = turnManager.CalculateRound(20);
+            round.ForEach(comb => Console.WriteLine(comb.Id));
+
             while (!exit)
             {
-                Console.WriteLine(parser.Parse(Console.ReadLine()));
+                var command = parser.Parse(Console.ReadLine());
+
             }
             
         }
