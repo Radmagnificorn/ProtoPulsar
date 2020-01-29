@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -7,58 +8,95 @@ namespace ProtoPulsar
 {
     class TurnManager
     {
-        private List<ICombatant> _combatants;
-
-
-        private List<ICombatant> _currentRound;
-
-        public TurnManager(List<ICombatant> combatants = null) 
+        private List<SpeedPointedCombatant> _combatants;
+        private SpeedPointedCombatant _activeCombatant;
+        public ICombatant ActiveCombatant
         {
-            if (combatants == null)
+            get
             {
-                _combatants = new List<ICombatant>();
-            } 
-            else
-            {
-                _combatants = combatants;
+                return _activeCombatant.Target;
             }
         }
 
-        public List<ICombatant> CalculateRound(int requestedTurns)
-        {
-            // TODO: base iterations on slowest combatant to save cycles
-            var turnList = new List<Turn>();
-            _combatants.ForEach(combatant =>
-            {
-                int turnSpeed = 0;
-                for (int turn = 0; turn < requestedTurns; turn++)
-                {
-                    turnSpeed += combatant.Speed;
-                    turnList.Add(new Turn(combatant, turnSpeed));
-                }
-            });
-            turnList.OrderBy(turn => turn.Speed);
 
-            return turnList.OrderBy(turn => turn.Speed)
-                .Take(requestedTurns)
-                .Select(turn => turn.Target).ToList();
+        public TurnManager(List<ICombatant> combatantList = null)
+        {
+            if (combatantList == null)
+            {
+                _combatants = new List<SpeedPointedCombatant>();
+            }
+            else
+            {
+                _combatants = combatantList.ConvertAll(c => new SpeedPointedCombatant(c));
+            }
         }
 
         public void AddCombatant(ICombatant combatant)
         {
-            _combatants.Add(combatant);
+            _combatants.Add(new SpeedPointedCombatant(combatant));
         }
+
+        private SpeedPointedCombatant SelectNext(List<SpeedPointedCombatant> combatants)
+        {
+            combatants.ForEach(combatant => combatant.IncrementPoints());
+            var onDeck = combatants.OrderByDescending(c => c.Points).First();
+            onDeck.ResetPoints();
+            return onDeck;
+        }
+
+        public ICombatant AdvanceTurn()
+        {
+            _activeCombatant = SelectNext(_combatants);
+            return _activeCombatant.Target;
+        }
+
+        public List<ICombatant> PredictTurnOrder(int numberOfTurns, List<SpeedPointedCombatant> combatants = null)
+        {
+            if (combatants == null)
+            {
+                combatants = _combatants;
+            }
+
+            var turnOrder = new List<ICombatant>();
+            var mockCombatants = combatants.ConvertAll(c => new SpeedPointedCombatant(c));
+
+            for (int turn = 0; turn < numberOfTurns; turn++)
+            {
+                turnOrder.Add(SelectNext(mockCombatants).Target);
+            }
+
+            return turnOrder;
+        }
+
+        
         
     }
 
-    class Turn
+    class SpeedPointedCombatant
     {
         public ICombatant Target { get; }
-        public int Speed { get; }
-        public Turn(ICombatant target, int speed)
+        public int Points { get; private set;}
+        public SpeedPointedCombatant(ICombatant target, int points = 0)
         {
             Target = target;
-            Speed = speed;
+            Points = points;
+        }
+
+        public SpeedPointedCombatant(SpeedPointedCombatant orderedCombatant)
+        {
+            Target = orderedCombatant.Target;
+            Points = orderedCombatant.Points;
+        }
+
+        public void IncrementPoints()
+        {
+            Points += Target.Speed;
+        }
+
+        public void ResetPoints()
+        {
+            Points = 0;
         }
     }
+
 }

@@ -8,5 +8,7 @@ namespace ProtoPulsar
     {
         public string Id { get; }
         public int Speed { get; }
+
+
     }
 }
