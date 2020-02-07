@@ -6,16 +6,11 @@ namespace ProtoPulsar
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("do something");
+            var battleService = new BattleService();
 
-            Boolean exit = false;
+            var parser = new CommandParser(battleService);
 
-            var parser = new CommandParser(new BattleService());
-
-            while (!exit)
-            {
-                Console.WriteLine(parser.Parse(Console.ReadLine()));
-            }
+            parser.Run();
             
         }
     }

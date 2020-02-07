@@ -9,12 +9,12 @@ namespace ProtoPulsar
     class TurnManager
     {
         private List<SpeedPointedCombatant> _combatants;
-        private SpeedPointedCombatant _activeCombatant;
-        public ICombatant ActiveCombatant
+        private SpeedPointedCombatant _turnHolder;
+        public ICombatant TurnHolder
         {
             get
             {
-                return _activeCombatant.Target;
+                return _turnHolder.Target;
             }
         }
 
@@ -29,6 +29,7 @@ namespace ProtoPulsar
             {
                 _combatants = combatantList.ConvertAll(c => new SpeedPointedCombatant(c));
             }
+
         }
 
         public void AddCombatant(ICombatant combatant)
@@ -38,6 +39,7 @@ namespace ProtoPulsar
 
         private SpeedPointedCombatant SelectNext(List<SpeedPointedCombatant> combatants)
         {
+            if (_combatants.Count < 1) return null;
             combatants.ForEach(combatant => combatant.IncrementPoints());
             var onDeck = combatants.OrderByDescending(c => c.Points).First();
             onDeck.ResetPoints();
@@ -46,8 +48,8 @@ namespace ProtoPulsar
 
         public ICombatant AdvanceTurn()
         {
-            _activeCombatant = SelectNext(_combatants);
-            return _activeCombatant.Target;
+            _turnHolder = SelectNext(_combatants);
+            return _turnHolder.Target;
         }
 
         public List<ICombatant> PredictTurnOrder(int numberOfTurns, List<SpeedPointedCombatant> combatants = null)
@@ -67,6 +69,8 @@ namespace ProtoPulsar
 
             return turnOrder;
         }
+
+
 
         
         

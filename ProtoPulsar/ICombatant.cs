@@ -9,6 +9,9 @@ namespace ProtoPulsar
         public string Id { get; }
         public int Speed { get; }
 
+        public bool Active { get; set; }
+
+        public List<BattleOption> BattleOptions { get; }
 
     }
 }
